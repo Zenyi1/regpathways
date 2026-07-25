@@ -176,10 +176,24 @@ export function solve(kb: KnowledgeBase, opts: SolveOptions): SolveResult {
       if (!feasible) continue
 
       const full = closeOverDependencies(chosen, states, authToMarket)
-      const cost = [...full.values()].reduce((sum, s) => sum + s.costUsd, 0)
+
+      // the per-target cost substitution can move a market later than it sat when other
+      // markets took a dependency on it — a target can be another target's reference.
+      // re-solve with the route set pinned so every start date is consistent with the
+      // routes actually chosen, and drop the point if that makes it infeasible.
+      const pinned = new Map([...full].map(([marketId, s]) => [marketId, s.routeId]))
+      const rescheduled = earliestApprovals(kb, opts.asset, {
+        allowedMarketIds: new Set(pinned.keys()),
+        routeAllowed: (route) => pinned.get(route.marketId) === route.id,
+        horizonDays: opts.horizonDays,
+      })
+      if (rescheduled.size !== pinned.size) continue
+      if (!targets.every((t) => rescheduled.has(t))) continue
+
+      const cost = [...rescheduled.values()].reduce((sum, s) => sum + s.costUsd, 0)
       if (opts.budgetUsd !== null && cost > opts.budgetUsd) continue
 
-      let entries: PlanEntry[] = [...full.entries()].map(([marketId, s]) => {
+      let entries: PlanEntry[] = [...rescheduled.entries()].map(([marketId, s]) => {
         const route = kb.routes.find((r) => r.id === s.routeId)
         return {
           marketId,
