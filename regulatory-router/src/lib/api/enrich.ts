@@ -109,6 +109,23 @@ export function solveEnriched(options: SolveOptions, warnings: string[] = []) {
   const cheapest = result.frontier[result.frontier.length - 1]
   const baseline = naiveBaseline(options)
 
+  // the single recommended plan: the compromise point closest to the ideal corner once
+  // time and cost are normalised. with one frontier point it degenerates to that point.
+  const timeSpan = fastest.makespanDays - cheapest.makespanDays
+  const costSpan = cheapest.costUsd - fastest.costUsd
+  let recommendedIndex = 0
+  let bestDistance = Number.POSITIVE_INFINITY
+  result.frontier.forEach((p, i) => {
+    const t = timeSpan === 0 ? 0 : (p.makespanDays - fastest.makespanDays) / -timeSpan
+    const c = costSpan === 0 ? 0 : (p.costUsd - fastest.costUsd) / costSpan
+    const distance = Math.hypot(Math.abs(t), Math.abs(c))
+    if (distance < bestDistance) {
+      bestDistance = distance
+      recommendedIndex = i
+    }
+  })
+  const recommended = result.frontier[recommendedIndex]
+
   const allSteps = result.frontier.flatMap((p) => p.plan)
   const lowConfidence = allSteps.filter((s) => s.confidence === 'low').length
   const confidenceMix = {
@@ -126,6 +143,8 @@ export function solveEnriched(options: SolveOptions, warnings: string[] = []) {
       budgetUsd: options.budgetUsd,
       horizonDays: options.horizonDays,
     },
+    recommendedIndex,
+    recommended: enrichPoint(recommended),
     summary: {
       frontierPoints: result.frontier.length,
       fastest: {

@@ -1,7 +1,5 @@
 import { KB } from '@/lib/data'
-import { ASSET_PRESETS } from '@/lib/data/assets'
-import { isRouteEligible } from '@/lib/solver/eligibility'
-import { Router, type AssetOption, type MarketOption } from '@/components/Router'
+import { Router, type MarketOption } from '@/components/Router'
 
 const MFN_THRESHOLD = 60
 
@@ -18,21 +16,6 @@ export default function Home() {
       priceIndex: m.priceIndex,
       gdpPerCapitaPctUs: m.gdpPerCapitaPctUs,
     }))
-
-  const programNames = new Map(KB.programs.map((p) => [p.id, p.name]))
-  const assets: AssetOption[] = ASSET_PRESETS.map((a) => ({
-    id: a.id,
-    name: a.name,
-    indication: a.indication,
-    kind: a.kind,
-    reachablePrograms: [
-      ...new Set(
-        KB.routes
-          .filter((r) => isRouteEligible(r, a) && r.programId)
-          .map((r) => programNames.get(r.programId as string) ?? (r.programId as string)),
-      ),
-    ],
-  }))
 
   return (
     <>
@@ -52,7 +35,7 @@ export default function Home() {
       </header>
 
       <div className="max-w-[1400px] mx-auto px-6 py-8 flex-1 w-full">
-        <Router markets={markets} assets={assets} />
+        <Router markets={markets} />
       </div>
 
       <footer className="bg-footer text-ink-on-dark mt-16">

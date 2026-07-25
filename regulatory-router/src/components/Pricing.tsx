@@ -33,11 +33,21 @@ export interface PricingResponse {
   }[]
 }
 
+export interface PricingAsset {
+  name: string
+  modality: string
+  kind: string
+  indication: string
+  orphan: boolean
+  priorityReviewGrade: boolean
+  whoEoiEligible: boolean
+}
+
 export function Pricing({
-  assetId,
+  asset,
   targets,
 }: {
-  assetId: string
+  asset: PricingAsset
   targets: string[]
 }) {
   const [data, setData] = useState<PricingResponse | null>(null)
@@ -57,7 +67,7 @@ export function Pricing({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          assetId,
+          asset,
           targets,
           useConfidentialRebates: rebates,
           mfn: { enabled, mode: 'threshold', gdpThresholdPct: threshold, exposure: exposure / 100 },
