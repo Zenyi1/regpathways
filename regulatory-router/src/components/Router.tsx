@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { Gantt } from './Gantt'
+import { Pricing } from './Pricing'
 import type { EnrichedPoint } from '@/lib/api/enrich'
 
 export interface MarketOption {
@@ -58,6 +59,7 @@ export function Router({
   const [pointIndex, setPointIndex] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [tab, setTab] = useState<'sequence' | 'pricing'>('sequence')
 
   const byRegion = useMemo(() => {
     const map = new Map<string, MarketOption[]>()
@@ -221,14 +223,33 @@ export function Router({
 
       {/* ---------------- results ---------------- */}
       <main className="min-w-0">
-        {!result && (
+        <div className="flex gap-6 border-b mb-6">
+          {(['sequence', 'pricing'] as const).map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setTab(t)}
+              className={`pb-2 -mb-px text-sm border-b-2 transition-colors ${
+                tab === t
+                  ? 'border-brand text-brand font-medium'
+                  : 'border-transparent text-ink-soft hover:text-ink'
+              }`}
+            >
+              {t === 'sequence' ? 'Filing sequence' : 'Pricing & MFN'}
+            </button>
+          ))}
+        </div>
+
+        {tab === 'pricing' && <Pricing assetId={assetId} targets={targets} />}
+
+        {tab === 'sequence' && !result && (
           <div className="border border-dashed p-12 text-center text-sm text-ink-soft">
             Pick an asset and target markets, then compute. The solver enumerates reference-
             regulator subsets and returns the full time/cost frontier.
           </div>
         )}
 
-        {result && !result.ok && (
+        {tab === 'sequence' && result && !result.ok && (
           <div className="border p-6">
             <h3 className="font-semibold mb-2">No feasible sequence</h3>
             <ul className="text-sm text-ink-soft space-y-1">
@@ -241,7 +262,7 @@ export function Router({
           </div>
         )}
 
-        {result?.ok && result.summary && (
+        {tab === 'sequence' && result?.ok && result.summary && (
           <div className="space-y-8">
             <section className="grid grid-cols-2 md:grid-cols-4 border divide-x divide-y md:divide-y-0">
               <Stat
