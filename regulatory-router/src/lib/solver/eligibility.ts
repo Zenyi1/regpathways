@@ -1,4 +1,4 @@
-import type { Asset, Authority, ProductCategory, Route } from './types'
+import type { Asset, Authority, ProductCategory, ReferenceSet, Route } from './types'
 
 /** which who-listed-authority scope this asset needs an agency to hold. */
 export function productCategoryFor(asset: Asset): ProductCategory {
@@ -38,7 +38,7 @@ export function isRouteEligible(route: Route, asset: Asset): boolean {
  * the wla case is asset-dependent because listings are modular by product category.
  */
 export function resolveReferenceSet(
-  set: Route['prereq'] extends { set: infer S } ? S : never,
+  set: ReferenceSet,
   authorities: Authority[],
   asset: Asset,
 ): string[] {

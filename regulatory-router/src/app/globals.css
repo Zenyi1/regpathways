@@ -1,26 +1,71 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-footer: var(--footer);
+  --color-ink-on-dark: var(--ink-on-dark);
+  --color-surface: var(--surface);
+  --color-line: var(--line);
+  --color-warn: var(--warn);
+
+  --font-sans: var(--font-inter), "Inter", system-ui, sans-serif;
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  /* firstocean palette — white body, ink text, deep-blue accent, navy footer */
+  --ink: #0b1120;
+  --ink-soft: #4a5670;
+  --brand: #1e3a8a;
+  --brand-strong: #16295f;
+  --footer: #0b1b4d;
+  --ink-on-dark: #ffffff;
+
+  --background: #ffffff;
+  --foreground: var(--ink);
+  --surface: #f6f7f9;
+  --line: rgba(11, 17, 32, 0.12);
+  --warn: #b45309;
+
+  --radius: 0.25rem;
+}
+
+@layer base {
+  * {
+    border-color: var(--line);
+  }
+  html {
+    font-family: var(--font-sans);
+  }
+  body {
+    background: var(--background);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-weight: 600;
+    letter-spacing: -0.02em;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+  .mono {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
 }

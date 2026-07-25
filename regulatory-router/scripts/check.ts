@@ -51,7 +51,6 @@ for (const asset of ASSET_PRESETS) {
 }
 
 const onc = byAsset.get('onc-biologic')!
-const hiv = byAsset.get('hiv-small-molecule')!
 const cardio = byAsset.get('cardio-nce')!
 
 check('every archetype solves', [...byAsset.values()].every((r) => r.frontier.length > 0))
