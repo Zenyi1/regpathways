@@ -81,12 +81,12 @@ export function buildOpenApiSpec(basePath: string, origin?: string) {
       title: 'Regulatory Pathway Router API',
       version: '1.0.0',
       description: [
-        'Computes the filing sequence that covers a set of target markets, exploiting **reliance pathways** — where approval by one regulator unlocks a faster, cheaper route in another.',
+        'Computes the filing sequence that covers a set of target markets, using **reliance pathways**, where approval by one regulator unlocks a faster, cheaper route in another.',
         '',
         '38 markets, 125 routes, 9 multilateral programmes (Project Orbis, Access Consortium, EU-M4all, WHO Prequalification and its Collaborative Registration Procedure, Swissmedic MAGHP, ZaZiBoNa, MDSAP).',
         '',
         '### Reading the numbers honestly',
-        '- Durations are **agency clocks in calendar days**. Real elapsed time runs 1.5–3× longer.',
+        '- Durations are **agency review clocks in calendar days**. Real elapsed time usually runs 1.5 to 3 times longer.',
         '- These are times to **approval, not to patient**. Reimbursement is a separate clock, exposed as `htaLagDays`.',
         '- Every route carries a `confidence` level and a `sourceUrl`. Rows marked `low` are estimates, not published figures.',
         '- MFN pricing is **proposed policy, not settled law**. Every pricing parameter is an input you can move.',
@@ -186,10 +186,13 @@ export function buildOpenApiSpec(basePath: string, origin?: string) {
       '/intake': {
         get: {
           tags: ['Pathway'],
-          summary: 'Parse a free-text drug description',
+          summary: 'Parse a free-text asset description',
           description:
-            'Deterministic keyword parsing over closed vocabularies — reliable and inspectable. If `ANTHROPIC_API_KEY` is configured it is used only to fill fields the parser could not resolve, never to override a match or invent a timing.',
-          parameters: [{ name: 'drug', in: 'query', required: true, schema: { type: 'string' }, example: 'a paediatric TB formulation for sub-Saharan Africa' }],
+            'Deterministic keyword parsing over closed vocabularies, so results are predictable and easy to inspect. If `ANTHROPIC_API_KEY` is configured it is used only to fill fields the parser could not resolve, never to override a match or invent a timing.',
+          parameters: [
+            { name: 'text', in: 'query', schema: { type: 'string' }, example: 'a class II infusion pump with a predicate for the US and EU' },
+            { name: 'drug', in: 'query', schema: { type: 'string' }, description: 'Alias for `text`.' },
+          ],
           responses: {
             '200': {
               description: 'Structured asset and suggested markets',
@@ -201,7 +204,7 @@ export function buildOpenApiSpec(basePath: string, origin?: string) {
                       ok: { type: 'boolean' },
                       asset: ASSET_SCHEMA,
                       suggestedTargets: { type: 'array', items: { type: 'string' } },
-                      targetSet: { type: 'string', enum: ['commercial', 'global', 'lmic'] },
+                      targetSet: { type: 'string', enum: ['commercial', 'global', 'lmic', 'deviceCommercial', 'deviceAccess'] },
                       detected: { type: 'array', items: { type: 'string' }, description: 'Fields the parser found evidence for.' },
                       assumptions: { type: 'array', items: { type: 'string' }, description: 'Where it had to guess.' },
                       modelUsed: { type: 'boolean' },
@@ -290,7 +293,7 @@ export function buildOpenApiSpec(basePath: string, origin?: string) {
           tags: ['Reference data'],
           summary: 'Routes',
           description:
-            'Every way into every market, with its prerequisite rendered in plain language — for example *2 of [FDA, EMA, HC, MHRA, SWISSMEDIC, TGA] approval, within 3 year(s)*.',
+            'Every way into every market, with its prerequisite rendered in plain language, for example *2 of [FDA, EMA, HC, MHRA, SWISSMEDIC, TGA] approval, within 3 year(s)*.',
           parameters: [
             { name: 'market', in: 'query', schema: { type: 'string' }, example: 'SG' },
             { name: 'program', in: 'query', schema: { type: 'string' }, example: 'ORBIS' },
@@ -312,7 +315,7 @@ export function buildOpenApiSpec(basePath: string, origin?: string) {
     components: {
       responses: {
         Invalid: {
-          description: 'Invalid request — unknown market ids, unknown preset, or a malformed asset.',
+          description: 'Invalid request: unknown market ids, an unknown preset, or a malformed asset.',
           content: { 'application/json': { schema: { type: 'object', properties: { error: { type: 'string' }, detail: {} } } } },
         },
       },
@@ -351,7 +354,7 @@ export function buildOpenApiSpec(basePath: string, origin?: string) {
             frontier: { type: 'array', items: POINT_SCHEMA },
             unreachable: {
               type: 'array',
-              description: 'Present when no plan covers every target — names which market failed and why.',
+              description: 'Present when no plan covers every target. Names which market failed and why.',
               items: { type: 'object', properties: { marketId: { type: 'string' }, reason: { type: 'string' } } },
             },
             elapsedMs: { type: 'integer' },

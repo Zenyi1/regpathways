@@ -1,10 +1,11 @@
+import Link from 'next/link'
 import type { Metadata } from 'next'
 import { ApiDocs } from '@/components/ApiDocs'
 
 export const metadata: Metadata = {
   title: 'API reference | Regulatory Pathway Router',
   description:
-    'Interactive documentation for the regulatory pathway API — solve filing sequences, parse drug descriptions, and model reference pricing.',
+    'Interactive documentation for the regulatory pathway API. Solve filing sequences, parse drug descriptions, and model reference pricing.',
 }
 
 export default function DocsPage() {
@@ -22,9 +23,9 @@ export default function DocsPage() {
             <a href="/api/openapi.json" className="text-brand hover:underline">
               OpenAPI spec
             </a>
-            <a href="/" className="text-brand hover:underline">
+            <Link href="/" className="text-brand hover:underline">
               ← Back to the router
-            </a>
+            </Link>
           </nav>
         </div>
       </header>

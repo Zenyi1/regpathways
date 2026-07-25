@@ -9,6 +9,21 @@ export type AssetKind =
   | 'atmp'
   | 'blood_product'
   | 'device'
+  | 'implantable'
+  | 'ivd'
+
+/**
+ * risk class is the single strongest determinant of a device or ivd pathway, and every
+ * jurisdiction cuts it differently: fda uses I/II/III, eu mdr uses I/IIa/IIb/III, eu ivdr
+ * uses A/B/C/D. one neutral four-level axis maps onto all three rather than forcing the
+ * user to know which local taxonomy applies.
+ *
+ *   low      fda class I      mdr class I     ivdr class A
+ *   moderate fda class II     mdr class IIa   ivdr class B
+ *   high     fda class II     mdr class IIb   ivdr class C
+ *   critical fda class III    mdr class III   ivdr class D
+ */
+export type RiskClass = 'low' | 'moderate' | 'high' | 'critical'
 
 // what an approval "counts as" when another market tries to rely on it.
 // mexico and others refuse to treat reliance-derived approvals as references,
@@ -51,6 +66,14 @@ export interface Eligibility {
   modalities?: Modality[]
   assetKinds?: AssetKind[]
   excludeAssetKinds?: AssetKind[]
+  /** device and ivd routes are almost always cut by risk class rather than by kind. */
+  riskClasses?: RiskClass[]
+  /**
+   * whether a legally marketed equivalent must already exist. this is the device
+   * analogue of a reference product and it is what separates a 510(k) from a de novo:
+   * one is only open with a predicate, the other only without.
+   */
+  predicate?: 'required' | 'absent'
   indications?: string[]
   excludeIndications?: string[]
   orphanOnly?: boolean
@@ -134,6 +157,10 @@ export interface Asset {
   orphan: boolean
   whoEoiEligible: boolean
   priorityReviewGrade: boolean
+  /** devices and ivds only. drugs leave this unset. */
+  riskClass?: RiskClass
+  /** devices and ivds only: a legally marketed equivalent device already exists. */
+  predicateDevice?: boolean
 }
 
 export interface ApprovalState {

@@ -77,6 +77,69 @@ export const ASSET_PRESETS: Asset[] = [
     whoEoiEligible: false,
     priorityReviewGrade: false,
   },
+
+  // devices and ivds. risk class, not indication, is what reshapes the graph here: a
+  // class III implantable and a class IIa monitor share almost no routes.
+  {
+    id: 'cardiac-implant',
+    name: 'Implantable cardiac device (class III)',
+    modality: 'device',
+    kind: 'implantable',
+    indication: 'cardiovascular',
+    orphan: false,
+    whoEoiEligible: false,
+    priorityReviewGrade: false,
+    riskClass: 'critical',
+    predicateDevice: false,
+  },
+  {
+    id: 'orthopaedic-implant',
+    name: 'Orthopaedic implant with a predicate',
+    modality: 'device',
+    kind: 'implantable',
+    indication: 'other',
+    orphan: false,
+    whoEoiEligible: false,
+    priorityReviewGrade: false,
+    riskClass: 'high',
+    predicateDevice: true,
+  },
+  {
+    id: 'infusion-pump',
+    name: 'Infusion pump (moderate risk, predicate exists)',
+    modality: 'device',
+    kind: 'device',
+    indication: 'other',
+    orphan: false,
+    whoEoiEligible: false,
+    priorityReviewGrade: false,
+    riskClass: 'moderate',
+    predicateDevice: true,
+  },
+  {
+    id: 'hiv-rapid-test',
+    name: 'HIV rapid diagnostic test for LMIC access',
+    modality: 'ivd',
+    kind: 'ivd',
+    indication: 'hiv',
+    orphan: false,
+    whoEoiEligible: true,
+    priorityReviewGrade: false,
+    riskClass: 'critical',
+    predicateDevice: true,
+  },
+  {
+    id: 'companion-diagnostic',
+    name: 'Oncology companion diagnostic',
+    modality: 'ivd',
+    kind: 'ivd',
+    indication: 'oncology',
+    orphan: false,
+    whoEoiEligible: false,
+    priorityReviewGrade: false,
+    riskClass: 'high',
+    predicateDevice: false,
+  },
 ]
 
 export const INDICATIONS = [
@@ -101,4 +164,13 @@ export const ASSET_KINDS = [
   'atmp',
   'blood_product',
   'device',
+  'implantable',
+  'ivd',
+] as const
+
+export const RISK_CLASSES = [
+  { value: 'low', label: 'Low', maps: 'FDA class I · MDR class I · IVDR class A' },
+  { value: 'moderate', label: 'Moderate', maps: 'FDA class II · MDR class IIa · IVDR class B' },
+  { value: 'high', label: 'High', maps: 'FDA class II · MDR class IIb · IVDR class C' },
+  { value: 'critical', label: 'Critical', maps: 'FDA class III · MDR class III · IVDR class D' },
 ] as const

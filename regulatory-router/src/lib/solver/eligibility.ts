@@ -24,6 +24,9 @@ export function isRouteEligible(route: Route, asset: Asset): boolean {
   if (e.modalities && !e.modalities.includes(asset.modality)) return false
   if (e.assetKinds && !e.assetKinds.includes(asset.kind)) return false
   if (e.excludeAssetKinds && e.excludeAssetKinds.includes(asset.kind)) return false
+  if (e.riskClasses && (!asset.riskClass || !e.riskClasses.includes(asset.riskClass))) return false
+  if (e.predicate === 'required' && !asset.predicateDevice) return false
+  if (e.predicate === 'absent' && asset.predicateDevice) return false
   if (e.indications && !e.indications.includes(asset.indication)) return false
   if (e.excludeIndications && e.excludeIndications.includes(asset.indication)) return false
   if (e.orphanOnly && !asset.orphan) return false
@@ -67,6 +70,13 @@ export function explainIneligibility(route: Route, asset: Asset): string | null 
     return `restricted to ${e.assetKinds.join(', ')}`
   if (e.excludeAssetKinds && e.excludeAssetKinds.includes(asset.kind))
     return `${asset.kind} is excluded`
+  if (e.riskClasses && !asset.riskClass) return 'no risk class set for this device'
+  if (e.riskClasses && asset.riskClass && !e.riskClasses.includes(asset.riskClass))
+    return `restricted to ${e.riskClasses.join('/')} risk class`
+  if (e.predicate === 'required' && !asset.predicateDevice)
+    return 'needs a legally marketed predicate device'
+  if (e.predicate === 'absent' && asset.predicateDevice)
+    return 'only for devices with no predicate'
   if (e.orphanOnly && !asset.orphan) return 'orphan designation required'
   if (e.requiresWhoEoi && !asset.whoEoiEligible)
     return 'no active WHO expression of interest for this category'

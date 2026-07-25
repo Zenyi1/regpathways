@@ -16,12 +16,12 @@ export async function GET() {
         description:
           'The main endpoint. Returns the time/cost Pareto frontier of filing sequences, each with a fully scheduled plan.',
         body: {
-          assetId: 'string — a preset id from /api/assets (or provide "asset" inline)',
-          asset: 'object — { name, modality, kind, indication, orphan, whoEoiEligible, priorityReviewGrade }',
-          targets: 'string[] — market ids from /api/markets',
-          capacity: 'number | null — max concurrent submissions; omit for unlimited',
-          budgetUsd: 'number | null — hard spend ceiling',
-          horizonDays: 'number — planning horizon, default 4000',
+          assetId: 'string: a preset id from /api/assets (or provide "asset" inline)',
+          asset: 'object: { name, modality, kind, indication, orphan, whoEoiEligible, priorityReviewGrade }',
+          targets: 'string[]: market ids from /api/markets',
+          capacity: 'number | null: max concurrent submissions; omit for unlimited',
+          budgetUsd: 'number | null: hard spend ceiling',
+          horizonDays: 'number: planning horizon, default 4000',
         },
         examples: [
           '/api/solve?assetId=onc-biologic&targets=US,EU,JP,UK,CA,AU,SG,BR,SA',

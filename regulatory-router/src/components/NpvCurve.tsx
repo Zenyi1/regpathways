@@ -231,8 +231,8 @@ export function NpvCurve({ curve, cliff, profitMaxMarkets }: Props) {
       />
       <p className="text-xs text-ink-soft mt-1">
         Markets launched, ordered by price from highest to lowest. The filled marker is the
-        profit-maximising set. NPV is non-monotone by construction — adding a market can destroy
-        value once it trips the MFN reference.
+        profit-maximising set. The NPV curve is allowed to dip: adding one more market can
+        destroy value once it trips the MFN reference.
       </p>
     </div>
   )

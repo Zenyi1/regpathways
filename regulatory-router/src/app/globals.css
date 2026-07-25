@@ -69,3 +69,37 @@
     font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   }
 }
+
+/* ---- first ocean motion primitives ---- */
+@keyframes fo-fade-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fo-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes fo-scale-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.985); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes fo-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes fo-dash {
+  0%   { stroke-dasharray: 1, 180; stroke-dashoffset: 0; }
+  50%  { stroke-dasharray: 120, 180; stroke-dashoffset: -30; }
+  100% { stroke-dasharray: 120, 180; stroke-dashoffset: -150; }
+}
+
+.fo-fade-up { animation: fo-fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.fo-fade-in { animation: fo-fade-in 0.5s ease both; }
+.fo-scale-in { animation: fo-scale-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.fo-spin { animation: fo-spin 1.4s linear infinite; transform-origin: center; }
+.fo-dash { animation: fo-dash 1.6s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fo-fade-up, .fo-fade-in, .fo-scale-in { animation: none; }
+  .fo-spin { animation-duration: 3s; }
+  .fo-dash { animation: none; stroke-dasharray: 90, 180; }
+}

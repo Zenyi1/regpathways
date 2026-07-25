@@ -8,8 +8,10 @@ export interface ParsedSolveRequest {
 
 const MODALITIES = new Set(['drug', 'device', 'ivd'])
 const KINDS = new Set([
-  'nce', 'biologic', 'vaccine', 'generic', 'biosimilar', 'atmp', 'blood_product', 'device',
+  'nce', 'biologic', 'vaccine', 'generic', 'biosimilar', 'atmp', 'blood_product',
+  'device', 'implantable', 'ivd',
 ])
+const RISK_CLASSES = new Set(['low', 'moderate', 'high', 'critical'])
 
 function asBool(v: unknown, fallback: boolean): boolean {
   if (v === undefined || v === null) return fallback
@@ -46,6 +48,19 @@ export function parseSolveRequest(body: Record<string, unknown>): ParsedSolveReq
     const kind = String(a.kind ?? 'nce')
     if (!MODALITIES.has(modality)) return { error: `invalid modality "${modality}"` }
     if (!KINDS.has(kind)) return { error: `invalid asset kind "${kind}"` }
+
+    // every device and ivd route is cut by risk class, so an unset one would return an
+    // empty frontier rather than a wrong answer. default it and say so.
+    const rawRisk = a.riskClass ?? a.risk_class
+    let riskClass: Asset['riskClass']
+    if (rawRisk !== undefined && rawRisk !== null && rawRisk !== '') {
+      if (!RISK_CLASSES.has(String(rawRisk))) return { error: `invalid risk class "${String(rawRisk)}"` }
+      riskClass = String(rawRisk) as Asset['riskClass']
+    } else if (modality !== 'drug') {
+      riskClass = 'moderate'
+      warnings.push('no risk class given; assumed moderate (FDA class II / MDR IIa / IVDR B)')
+    }
+
     asset = {
       id: String(a.id ?? 'custom'),
       name: String(a.name ?? 'Custom asset'),
@@ -55,6 +70,8 @@ export function parseSolveRequest(body: Record<string, unknown>): ParsedSolveReq
       orphan: asBool(a.orphan, false),
       whoEoiEligible: asBool(a.whoEoiEligible ?? a.who_eoi_eligible, false),
       priorityReviewGrade: asBool(a.priorityReviewGrade ?? a.priority_review_grade, false),
+      riskClass,
+      predicateDevice: asBool(a.predicateDevice ?? a.predicate_device, modality !== 'drug'),
     }
   } else {
     return { error: 'provide either "assetId" (a preset) or an inline "asset" object' }

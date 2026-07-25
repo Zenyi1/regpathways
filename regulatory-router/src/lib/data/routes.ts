@@ -4,6 +4,18 @@ import type { Confidence, Modality, Program, Provenance, Route } from '../solver
 const wd = (n: number) => Math.round(n * 1.4)
 
 const SRA = ['FDA', 'EMA', 'PMDA', 'MHRA', 'HC', 'SWISSMEDIC', 'TGA'] as const
+/**
+ * the ghtf founding members are the device world's sra list. saudi, indian, israeli and
+ * most gulf and asean device rules name this exact set as the reference regulators whose
+ * approval opens an abridged route.
+ *
+ * note that an eu device approval is a notified-body ce certificate, not an ema decision.
+ * this kb keys markets to a single authority id, so EMA stands in for "the eu system"
+ * here — the market and the reliance edges are right even though the issuing body is not.
+ */
+const GHTF = ['FDA', 'EMA', 'PMDA', 'HC', 'TGA'] as const
+/** one qms audit accepted by all five. this is what makes the audit component cheap. */
+const MDSAP_MARKETS = ['US', 'CA', 'BR', 'JP', 'AU'] as const
 const ORBIS_PARTNERS = ['AU', 'CA', 'SG', 'CH', 'BR', 'UK', 'IL'] as const
 const ACCESS_MEMBERS = ['AU', 'CA', 'SG', 'CH', 'UK'] as const
 /** africa + asia markets that participate in the who collaborative registration procedure. */
@@ -71,9 +83,19 @@ function r(spec: Spec): Route {
   }
 }
 
+/** most jurisdictions run one device pipeline and put ivds through it unchanged. */
+function both(spec: Omit<Spec, 'modality'>): Route[] {
+  return [r({ ...spec, modality: 'device' }), r({ ...spec, id: `${spec.id}-IVD`, modality: 'ivd' })]
+}
+
 const FDA_URL = 'https://www.federalregister.gov/documents/2025/07/30/2025-14413/prescription-drug-user-fee-rates-for-fiscal-year-2026'
 const CRP_URL = 'https://www.who.int/teams/regulation-prequalification/regulation-and-safety/facilitated-product-introduction/collaborative-registration-procedure'
 const EAC_URL = 'https://pmc.ncbi.nlm.nih.gov/articles/PMC11442268/'
+/** team-nb 2025 survey: the only aggregate evidence on notified-body clock times. */
+const TEAM_NB_URL = 'https://www.team-nb.org/wp-content/uploads/2026/05/Survey-2025.pdf'
+const UK_MD_URL = 'https://www.gov.uk/guidance/regulating-medical-devices-in-the-uk'
+const MDSAP_URL = 'https://www.fda.gov/medical-devices/cdrh-international-programs/medical-device-single-audit-program-mdsap'
+const MDUFA_URL = 'https://www.federalregister.gov/documents/2025/07/30/2025-14412/medical-device-user-fee-rates-for-fiscal-year-2026'
 
 export const ROUTES: Route[] = [
   // ================= anchors, standalone =================
@@ -110,6 +132,8 @@ export const ROUTES: Route[] = [
 
   r({ id: 'WHOPQ-FULL', marketId: 'WHOPQ', name: 'Prequalification, full assessment', programId: 'WHO_PQ', days: 270, cost: 80_000, eligibility: { requiresWhoEoi: true }, confidence: 'high', sourceUrl: 'https://extranet.who.int/prequal/vitro-diagnostics/timelines' }),
   r({ id: 'WHOPQ-ABRIDGED', marketId: 'WHOPQ', name: 'Prequalification, abridged assessment', programId: 'WHO_PQ', days: 100, cost: 60_000, prereq: { kind: 'kOf', k: 1, set: { kind: 'named', authorities: [...SRA] } }, eligibility: { requiresWhoEoi: true }, confidence: 'high', sourceUrl: 'https://extranet.who.int/prequal/vitro-diagnostics/timelines' }),
+  r({ id: 'WHOPQ-FULL-IVD', marketId: 'WHOPQ', name: 'Prequalification, full assessment', programId: 'WHO_PQ', modality: 'ivd', days: 270, cost: 80_000, eligibility: { requiresWhoEoi: true }, confidence: 'high', sourceUrl: 'https://extranet.who.int/prequal/vitro-diagnostics/timelines' }),
+  r({ id: 'WHOPQ-ABRIDGED-IVD', marketId: 'WHOPQ', name: 'Prequalification, abridged assessment', programId: 'WHO_PQ', modality: 'ivd', days: 100, cost: 60_000, prereq: { kind: 'kOf', k: 1, set: { kind: 'named', authorities: [...SRA] } }, eligibility: { requiresWhoEoi: true }, confidence: 'high', sourceUrl: 'https://extranet.who.int/prequal/vitro-diagnostics/timelines' }),
 
   // ================= project orbis =================
   ...ORBIS_PARTNERS.flatMap((marketId) => [
@@ -220,6 +244,67 @@ export const ROUTES: Route[] = [
   // ================= eastern europe =================
   r({ id: 'UA-RECOGNITION', marketId: 'UA', name: 'Fast-track registration by recognition', days: 14, cost: 15_000, prereq: { kind: 'kOf', k: 1, set: { kind: 'named', authorities: ['FDA', 'SWISSMEDIC', 'PMDA', 'TGA', 'HC', 'EMA'] } }, satisfies: ['dossier', 'gmp_audit'], confidence: 'medium', sourceUrl: 'https://cratia.ua/en/state-registration-medicines-and-active-pharmaceutical-ingredients/abridged-registration-procedures', note: 'Ten business days with no specialised expert assessment of the dossier.' }),
   r({ id: 'UA-STD', marketId: 'UA', name: 'Ukraine national procedure', days: 300, cost: 150000, confidence: 'medium', sourceUrl: 'https://cratia.ua/' }),
+
+  // ================= devices and ivds: united states =================
+  // ivds climb the identical class I/II/III ladder, so the same specs are emitted for
+  // both modalities. the fda's laboratory-developed-test rule was vacated in full in
+  // march 2025 (ACLA v. FDA, E.D. Tex.) and has not been appealed, so there is no ldt
+  // route to model.
+  //
+  // durations are observed calendar days to decision, not mdufa "fda days" — the mdufa
+  // clock stops while the applicant answers an additional-information request, and about
+  // two thirds of 510(k)s get one, which is the whole gap between 90 and ~160.
+  //
+  // breakthrough device designation is deliberately absent: it grants priority handling
+  // and interactive review but no shortened statutory clock, and the fda's own guidance
+  // warns breakthrough submissions can run longer than average because they are novel.
+  ...both({ id: 'US-MD-EXEMPT', marketId: 'US', name: '510(k)-exempt registration and listing', days: 30, cost: 11_423, satisfies: ['dossier', 'labelling'], eligibility: { riskClasses: ['low'] }, confidence: 'high', sourceUrl: MDUFA_URL, note: 'Annual establishment registration fee. No premarket review, but quality-system compliance still applies.' }),
+  ...both({ id: 'US-MD-510K', marketId: 'US', name: '510(k) premarket notification', days: 160, cost: 26_067, satisfies: ['dossier', 'labelling'], eligibility: { riskClasses: ['moderate', 'high'], predicate: 'required' }, confidence: 'high', sourceUrl: MDUFA_URL, note: 'MDUFA goal is 90 FDA days; ~160 calendar days is the observed average once the additional-information hold is counted.' }),
+  ...both({ id: 'US-MD-DENOVO', marketId: 'US', name: 'De Novo classification request', days: 341, cost: 173_782, satisfies: ['dossier', 'labelling'], eligibility: { riskClasses: ['moderate', 'high'], predicate: 'absent' }, confidence: 'medium', sourceUrl: 'https://www.fda.gov/medical-devices/premarket-submissions-selecting-and-preparing-correct-submission/de-novo-classification-request', note: 'For novel low-to-moderate risk devices with no predicate. The granted device then becomes a predicate for later 510(k)s.' }),
+  ...both({ id: 'US-MD-PMA', marketId: 'US', name: 'Premarket approval (PMA)', days: 400, cost: 579_272, satisfies: ['dossier', 'gmp_audit', 'labelling'], eligibility: { riskClasses: ['critical'] }, confidence: 'medium', sourceUrl: 'https://www.fda.gov/medical-devices/quality-and-compliance-medical-devices/medical-device-premarket-approval-and-postmarket-inspections', note: 'Includes a preapproval facility inspection, which an MDSAP report cannot substitute for — MDSAP replaces routine surveillance inspections only.' }),
+
+  // ================= devices and ivds: eu =================
+  // the eu is a pure reliance *donor* for devices. there is no abridged, recognition or
+  // reliance route by which an fda, tga, health canada or pmda approval shortens an mdr
+  // or ivdr conformity assessment — foreign clinical data can be reused as evidence, but
+  // the procedure itself is never shortened. every eu route below therefore has no
+  // prerequisite, and every non-eu route that names EMA is consuming a ce certificate.
+  //
+  // team-nb's 2025 survey (41 notified bodies, ~79% mdr market share) puts a new mdr
+  // certificate at 13-18 months for 48% of bodies and a new ivdr certificate at 13-18
+  // months for 61%. no per-risk-class breakdown is published anywhere, so the spread by
+  // class below is an assumption on top of that band, not a sourced figure.
+  r({ id: 'EU-MDR-CLASS-I', marketId: 'EU', name: 'MDR class I self-declaration', modality: 'device', days: 90, cost: 30_000, satisfies: ['dossier', 'gmp_audit', 'labelling', 'lot_release'], eligibility: { riskClasses: ['low'] }, confidence: 'high', sourceUrl: 'https://health.ec.europa.eu/medical-devices-sector/new-regulations_en', note: 'No notified body for plain class I. Sterile, measuring and reusable-surgical variants need one for that aspect only.' }),
+  r({ id: 'EU-MDR-NB-IIA', marketId: 'EU', name: 'MDR class IIa notified-body assessment', modality: 'device', days: 420, cost: 180_000, satisfies: ['dossier', 'gmp_audit', 'labelling', 'lot_release'], eligibility: { riskClasses: ['moderate'] }, confidence: 'medium', sourceUrl: TEAM_NB_URL }),
+  r({ id: 'EU-MDR-NB-IIB', marketId: 'EU', name: 'MDR class IIb notified-body assessment', modality: 'device', days: 470, cost: 300_000, satisfies: ['dossier', 'gmp_audit', 'labelling', 'lot_release'], eligibility: { riskClasses: ['high'] }, confidence: 'medium', sourceUrl: TEAM_NB_URL }),
+  r({ id: 'EU-MDR-NB-III', marketId: 'EU', name: 'MDR class III notified-body assessment', modality: 'device', days: 540, cost: 500_000, satisfies: ['dossier', 'gmp_audit', 'labelling', 'lot_release'], eligibility: { riskClasses: ['critical'] }, confidence: 'medium', sourceUrl: TEAM_NB_URL, note: 'Per-device design examination. Class III implantables can also trigger an Article 54 expert-panel clinical evaluation consultation.' }),
+
+  r({ id: 'EU-IVDR-CLASS-A', marketId: 'EU', name: 'IVDR class A self-declaration', modality: 'ivd', days: 90, cost: 25_000, satisfies: ['dossier', 'gmp_audit', 'labelling', 'lot_release'], eligibility: { riskClasses: ['low'] }, confidence: 'high', sourceUrl: 'https://health.ec.europa.eu/medical-devices-sector/new-regulations_en', note: 'Class A sterile still needs a notified body for the sterility aspect.' }),
+  r({ id: 'EU-IVDR-NB-B', marketId: 'EU', name: 'IVDR class B notified-body assessment', modality: 'ivd', days: 420, cost: 160_000, satisfies: ['dossier', 'gmp_audit', 'labelling', 'lot_release'], eligibility: { riskClasses: ['moderate'] }, confidence: 'medium', sourceUrl: TEAM_NB_URL }),
+  r({ id: 'EU-IVDR-NB-C', marketId: 'EU', name: 'IVDR class C notified-body assessment', modality: 'ivd', days: 470, cost: 240_000, satisfies: ['dossier', 'gmp_audit', 'labelling', 'lot_release'], eligibility: { riskClasses: ['high'] }, confidence: 'medium', sourceUrl: TEAM_NB_URL }),
+  // class D is the one place the lot_release component is literally true: an eu reference
+  // laboratory verifies performance (60-day statutory opinion) and then verifies every
+  // manufactured batch. leaving lot_release unsatisfied is what models that.
+  r({ id: 'EU-IVDR-NB-D', marketId: 'EU', name: 'IVDR class D with EU reference laboratory', modality: 'ivd', days: 540, cost: 350_000, satisfies: ['dossier', 'gmp_audit', 'labelling'], eligibility: { riskClasses: ['critical'] }, confidence: 'medium', sourceUrl: 'https://www.bsigroup.com/en-GB/insights-and-media/media-centre/press-releases/2024/september/rollout-of-eu-reference-laboratories-for-ivdr-class-d-devices/', note: 'EURL performance verification since 1 Oct 2024, then batch verification of every lot. The EURL opinion window is fixed at 60 days.' }),
+
+  // ================= devices and ivds: uk and switzerland =================
+  // great britain recognises the ce mark rather than assessing the device itself, so this
+  // is the cheapest reliance edge in the device graph. mhra's own international reliance
+  // route naming the fda, tga and health canada is still draft legislation as of july
+  // 2026 and is deliberately not modelled here.
+  r({ id: 'UK-MD-CE-RECOGNITION', marketId: 'UK', name: 'GB recognition of CE marking', modality: 'device', days: 25, cost: 8_000, prereq: { kind: 'kOf', k: 1, set: { kind: 'named', authorities: ['EMA'] } }, satisfies: ['dossier', 'gmp_audit', 'labelling'], confidence: 'high', sourceUrl: UK_MD_URL, note: 'EU MDR CE-marked devices accepted in GB until 30 June 2030. MHRA registration is administrative, not a technical review.' }),
+  r({ id: 'UK-MD-UKCA-LOW', marketId: 'UK', name: 'UKCA self-declaration, low risk', modality: 'device', days: 60, cost: 20_000, satisfies: ['dossier', 'gmp_audit', 'labelling'], eligibility: { riskClasses: ['low'] }, confidence: 'high', sourceUrl: UK_MD_URL }),
+  r({ id: 'UK-MD-UKCA', marketId: 'UK', name: 'UKCA marking via UK Approved Body', modality: 'device', days: 420, cost: 200_000, satisfies: ['dossier', 'gmp_audit', 'labelling'], eligibility: { riskClasses: ['moderate', 'high', 'critical'] }, confidence: 'medium', sourceUrl: UK_MD_URL }),
+
+  r({ id: 'UK-IVD-CE-RECOGNITION', marketId: 'UK', name: 'GB recognition of CE marking', modality: 'ivd', days: 25, cost: 8_000, prereq: { kind: 'kOf', k: 1, set: { kind: 'named', authorities: ['EMA'] } }, satisfies: ['dossier', 'gmp_audit', 'labelling'], confidence: 'high', sourceUrl: UK_MD_URL, note: 'EU IVDR CE-marked IVDs accepted in GB until 30 June 2030; IVDD legacy until 30 June 2030.' }),
+  r({ id: 'UK-IVD-UKCA-LOW', marketId: 'UK', name: 'UKCA self-declaration, general IVD', modality: 'ivd', days: 60, cost: 20_000, satisfies: ['dossier', 'gmp_audit', 'labelling'], eligibility: { riskClasses: ['low'] }, confidence: 'high', sourceUrl: UK_MD_URL }),
+  r({ id: 'UK-IVD-UKCA', marketId: 'UK', name: 'UKCA marking via UK Approved Body', modality: 'ivd', days: 420, cost: 200_000, satisfies: ['dossier', 'gmp_audit', 'labelling'], eligibility: { riskClasses: ['moderate', 'high', 'critical'] }, confidence: 'medium', sourceUrl: UK_MD_URL }),
+
+  // switzerland has no domestic device approval at all: a ce certificate plus a swiss
+  // authorised representative and a swissmedic registration is the whole pathway.
+  ...(['device', 'ivd'] as const).map((modality) =>
+    r({ id: `CH-MD-CE${modality === 'ivd' ? '-IVD' : ''}`, marketId: 'CH', name: 'Registration on a CE certificate', modality, days: 60, cost: 20_000, prereq: { kind: 'kOf', k: 1, set: { kind: 'named', authorities: ['EMA'] } }, satisfies: ['dossier', 'gmp_audit', 'labelling'], confidence: 'medium', sourceUrl: 'https://www.swissmedic.ch/swissmedic/en/home/medical-devices.html', note: 'Swissmedic does not certify devices. It registers CE-marked devices that have a Swiss authorised representative.' }),
+  ),
 ]
 
 export const ROUTES_BY_MARKET = ROUTES.reduce((acc, route) => {

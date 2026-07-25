@@ -44,7 +44,7 @@ export function ApiDocs({ specUrl }: { specUrl: string }) {
           <h2 className="text-lg font-semibold mb-2">Interactive docs could not load</h2>
           <p className="text-ink-soft leading-relaxed">
             The renderer is served from a CDN that appears to be unreachable. The specification
-            itself is fine — fetch it directly at{' '}
+            itself is fine. You can fetch it directly at{' '}
             <a href={specUrl} className="text-brand hover:underline">
               {specUrl}
             </a>{' '}

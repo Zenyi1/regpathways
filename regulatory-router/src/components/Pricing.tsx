@@ -89,7 +89,7 @@ export function Pricing({
     <div className="space-y-8">
       <section className="border p-4">
         <h3 className="text-xs uppercase tracking-widest text-ink-soft mb-4">
-          Most Favoured Nation policy — scenario inputs
+          Most Favoured Nation scenario inputs
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-5 items-end">
           <label className="flex items-center gap-2 text-sm">
@@ -103,7 +103,7 @@ export function Pricing({
           </label>
 
           <label className="text-xs text-ink-soft">
-            Reference threshold — {threshold}% of US GDP per capita
+            Reference threshold: {threshold}% of US GDP per capita
             <input
               type="range"
               min={30}
@@ -116,7 +116,7 @@ export function Pricing({
           </label>
 
           <label className="text-xs text-ink-soft">
-            US revenue exposed — {exposure}%
+            US revenue exposed: {exposure}%
             <input
               type="range"
               min={0}
@@ -152,7 +152,7 @@ export function Pricing({
           The 60% threshold is the operative HHS definition: the lowest price in an OECD country
           with GDP per capita at least 60% of the US. Exposure defaults to 25% because GLOBE is
           proposed as a phased model covering roughly a quarter of Part B beneficiaries. None of
-          this is settled law — every field here is an assumption you can move.
+          this is settled law, so treat every field here as an assumption you can move.
         </p>
       </section>
 
@@ -213,7 +213,7 @@ export function Pricing({
             <div className="border divide-y">
               {data.accessAtTolerance.map((a) => (
                 <div key={a.giveUpToPct} className="flex items-baseline gap-4 px-4 py-2 text-sm">
-                  <span className="w-40 text-ink-soft">Give up up to {a.giveUpToPct}% of NPV</span>
+                  <span className="w-40 text-ink-soft">Sacrifice up to {a.giveUpToPct}% of NPV</span>
                   <span className="tnum w-24">{a.markets} markets</span>
                   <span className="tnum w-28">${a.npvUsdM.toLocaleString()}M</span>
                   <span className="tnum text-ink-soft">
@@ -226,7 +226,7 @@ export function Pricing({
 
           <section>
             <h3 className="text-xs uppercase tracking-widest text-ink-soft mb-3">
-              Price by market — list versus net
+              Price by market: list versus net
             </h3>
             <div className="overflow-x-auto border">
               <table className="w-full text-sm">
@@ -249,17 +249,17 @@ export function Pricing({
                         {m.inMfnBasket ? (
                           <span className="px-1 bg-brand text-white text-[10px]">IN</span>
                         ) : (
-                          <span className="text-ink-soft">—</span>
+                          <span className="text-ink-soft">-</span>
                         )}
                       </td>
                       <td className="px-3 py-2 text-right tnum text-ink-soft">{m.freePrice}</td>
                       <td className="px-3 py-2 text-right tnum">{m.listPrice}</td>
                       <td className="px-3 py-2 text-right tnum">{m.netPrice}</td>
                       <td className="px-3 py-2 text-right tnum">
-                        {m.erosion > 0 ? `−${m.erosion}` : '—'}
+                        {m.erosion > 0 ? `−${m.erosion}` : '-'}
                       </td>
                       <td className="px-3 py-2 text-xs text-ink-soft">
-                        {m.referencedFrom.join(', ') || '—'}
+                        {m.referencedFrom.join(', ') || '-'}
                       </td>
                     </tr>
                   ))}

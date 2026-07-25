@@ -52,7 +52,7 @@ export const PRICING_MARKETS: PricingMarket[] = [
     erpBasket: [], erpFormula: 'none', htaLagDays: 190,
     confidentialRebate: true, requestsNetPrice: false,
     confidence: 'high', sourceUrl: 'https://www.insideeulifesciences.com/2024/07/12/germany-amends-drug-pricing-and-reimbursement-laws-with-medical-research-act-drug-pricing-becomes-intertwined-with-local-clinical-research-expectations/',
-    note: 'Abolished its own external referencing in 2024. Free pricing for six months, then AMNOG. Confidential price available from 2025 for an extra 9% discount — and Germany is referenced by 12-17 other countries.',
+    note: 'Abolished its own external referencing in 2024. Free pricing for six months, then AMNOG. Confidential price available from 2025 for an extra 9% discount, and Germany is referenced by 12-17 other countries.',
   },
   {
     id: 'FR', name: 'France', approvalVia: EU,
@@ -68,7 +68,7 @@ export const PRICING_MARKETS: PricingMarket[] = [
     erpBasket: ['DE', 'FR', 'ES', 'UK'], erpFormula: 'lowest', htaLagDays: 430,
     confidentialRebate: true, requestsNetPrice: true,
     confidence: 'medium', sourceUrl: 'https://portolano.it/en/blog/life-sciences/reimbursement-and-pricing-of-medicines-aifas-new-rules-effective-1-april-2026-',
-    note: 'Requests net prices — a leak point in an otherwise opaque system.',
+    note: 'Requests net prices, a leak point in an otherwise opaque system.',
   },
   {
     id: 'ES', name: 'Spain', approvalVia: EU,
@@ -115,7 +115,7 @@ export const PRICING_MARKETS: PricingMarket[] = [
     erpBasket: ['DE', 'FR', 'IT', 'ES', 'PT', 'AT', 'BE', 'NL'], erpFormula: 'mean_of_3_lowest', htaLagDays: 600,
     confidentialRebate: false, requestsNetPrice: false,
     confidence: 'medium', sourceUrl: 'https://remapconsulting.com/international-reference-pricing/eu-and-uk-reference-pricing-considerations-guide/',
-    note: 'Reprices every three months — the most frequent in Europe. Named by the EFPIA root-cause report as a structural barrier to launch.',
+    note: 'Reprices every three months, the most frequent in Europe. Named by the EFPIA root-cause report as a structural barrier to launch.',
   },
   {
     id: 'CZ', name: 'Czechia', approvalVia: EU,
@@ -131,7 +131,7 @@ export const PRICING_MARKETS: PricingMarket[] = [
     erpBasket: ['DE', 'FR', 'IT', 'ES', 'CZ', 'GR', 'PT'], erpFormula: 'lowest', htaLagDays: 450,
     confidentialRebate: true, requestsNetPrice: true,
     confidence: 'medium', sourceUrl: 'https://www.pharmaceutical-technology.com/pricing-and-market-access/reference-pricing-cee-countries-pressure-prices-html/',
-    note: 'Requests net prices — a leak point.',
+    note: 'Requests net prices, a leak point.',
   },
   {
     id: 'BG', name: 'Bulgaria', approvalVia: EU,
@@ -270,7 +270,7 @@ export const PRICING_MARKETS: PricingMarket[] = [
     erpBasket: ['SA', 'DE', 'FR', 'IT', 'ES', 'GR'], erpFormula: 'lowest', htaLagDays: 120,
     confidentialRebate: false, requestsNetPrice: false,
     confidence: 'medium', sourceUrl: 'https://applications.emro.who.int/dsaf/dsa786.pdf',
-    note: 'Takes the minimum of four benchmarks, one of which is explicitly the Saudi public price — a direct KSA to Jordan cascade.',
+    note: 'Takes the minimum of four benchmarks, one of which is explicitly the Saudi public price, so KSA cascades straight into Jordan.',
   },
   {
     id: 'ZA', name: 'South Africa', approvalVia: 'ZA',

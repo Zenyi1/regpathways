@@ -9,7 +9,7 @@ export function OPTIONS() {
 }
 
 async function handle(text: string) {
-  if (!text.trim()) return apiError('provide a drug description in "drug"', 422)
+  if (!text.trim()) return apiError('provide a description in "text" or "drug"', 422)
   const base = parseDrugDescription(text)
   const result = await refineWithModel(text, base)
   return json(
@@ -17,10 +17,12 @@ async function handle(text: string) {
       ok: true,
       input: text,
       asset: result.asset,
+      matchedDrug: result.matchedDrug,
       suggestedTargets: result.targets,
       targetSet: result.targetSet,
       detected: result.detected,
       assumptions: result.assumptions,
+      basis: result.basis,
       modelUsed: Boolean(process.env.ANTHROPIC_API_KEY),
     },
     { cache: 'no-store' },
@@ -28,7 +30,8 @@ async function handle(text: string) {
 }
 
 export async function GET(request: NextRequest) {
-  return handle(request.nextUrl.searchParams.get('drug') ?? '')
+  const q = request.nextUrl.searchParams
+  return handle(q.get('text') ?? q.get('description') ?? q.get('drug') ?? '')
 }
 
 export async function POST(request: NextRequest) {
